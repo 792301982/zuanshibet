@@ -160,7 +160,8 @@ def worker1(cookies,lotteryid,model,set_moneys,):
         try:
             now_numbs = numbs_dict[now_issue].split(',')
         except KeyError:
-            time.sleep(1)
+            print('彩种：%s' % lotteryid,'开奖结果尚未更新，正在重试……')
+            time.sleep(10)
             continue
 
         if(now_numbs == bet_list_flag):
@@ -215,10 +216,8 @@ if __name__ == "__main__":
     cookies=login()
 
     p1=Process(target=worker1,args=(cookies,'22',model,set_moneys,))
-    p2=Process(target=worker1,args=(cookies,'3',model,set_moneys,))
-    p3=Process(target=worker1,args=(cookies,'31',model,set_moneys,))
+    p2=Process(target=worker1,args=(cookies,'31',model,set_moneys,))
     p1.start()
     p2.start()
-    p3.start()
-    
-    input('123')
+
+    worker1(cookies,'3',model,set_moneys,)
