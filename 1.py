@@ -2,6 +2,7 @@ import requests
 import json
 import time,sys
 from multiprocessing import Process
+import mul_process_package
 
 def Beijing_time():
     r=requests.get('https://www.baidu.com')
@@ -161,13 +162,13 @@ def worker1(cookies,lotteryid,model,set_moneys,):
             now_numbs = numbs_dict[now_issue].split(',')
         except KeyError:
             print('彩种：%s' % lotteryid,'开奖结果尚未更新，正在重试……')
-            time.sleep(10)
+            time.sleep(60)
             continue
 
         if(now_numbs == bet_list_flag):
             print(time.asctime(time.localtime(time.time())),lotteryid,
                 '当前期号：', next_issue, '等待开奖中……')
-            time.sleep(10)
+            time.sleep(60)
             continue
         else:
             for n, i in enumerate(bet_list_flag):
@@ -199,11 +200,12 @@ def worker1(cookies,lotteryid,model,set_moneys,):
                 print('位置:'+str(i[0]),'内容:'+str(i[1]), str(i[2])+'元')
         bet_list_flag = now_numbs[:]
         if(d != '200'):
-            time.sleep(5)
+            time.sleep(10)
             continue
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     '''
         方案一：开什么投什么 
     '''
