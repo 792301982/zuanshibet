@@ -1,6 +1,7 @@
 import requests
 import json
 import time,sys
+from multiprocessing import Process
 
 def Beijing_time():
     r=requests.get('https://www.baidu.com')
@@ -63,6 +64,8 @@ def getCurInfoAndModel(lotteryid, cookies):
                       'lotteryid': str(lotteryid), 'pageflag': 'gyjzh'})
     d = json.loads(r.text)
     curIssue = d['data']['curIssue']
+    if(str(lotteryid)=='3'):
+        curIssue=curIssue[:8]+'-'+curIssue[8:]
     # modelItemList:[{methodid: 1243, model: 42.3}]
     return [curIssue, d['data']['modelItemList']]
 
@@ -76,7 +79,7 @@ def Get_last30_number(lotteryid, cookies):
     for i in d['data']:
         issue = i['issue']
         numbs = i['winnumber']
-        t[issue] = numbs
+        t['%0*d' % (4, int(issue))] = numbs
     return t
 
 
@@ -130,11 +133,12 @@ def Bet(lotteryid, issue, method_list, cookies):
         print(
             ''' 
 !!!!!!!!!!!!!!投注成功!!!!!!!!!!!!!!
+彩种：%s
 总金额：%s
 总数：%s
 期号：%s
 投注内容：'''
-            % (d['data']['totalBetMoney'], d['data']['num'], d['data']['issue'])
+            % (lotteryid,d['data']['totalBetMoney'], d['data']['num'], d['data']['issue'])
         )
         for i in d['data']['gameRecords']:
             print(i['betcontent'], str(i['amount'])+'元')
@@ -142,26 +146,15 @@ def Bet(lotteryid, issue, method_list, cookies):
         print(d['msg'])
     return d['code']
 
-
-'''
-        方案一：开什么投什么 
-'''
-print('钻石国际自动投注 测试版 v0.1')
-print('方案一：开什么投什么')
-lotteryid=input("输入彩种前的序号   22极速赛车        3幸运飞艇        31欢乐赛车：")
-model=input('选择模式前的序号 1真实 2模拟：')
-set_moneys = input("输入投注金额（用空格分隔开）：").split(' ')
-
-
-def worker1(cookies,lotteryid):
+def worker1(cookies,lotteryid,model,set_moneys,):
     bet_list_flag = ''
     money_dict = dict()
     for i in range(10):
         money_dict[str(i)] = set_moneys[::-1]
 
     while(1):
-        next_issue = getCurInfoAndModel(22, cookies)[0]
-        numbs_dict = Get_last30_number(22, cookies)
+        next_issue = getCurInfoAndModel(lotteryid, cookies)[0]
+        numbs_dict = Get_last30_number(lotteryid, cookies)
         now_issue = '%0*d' % (4, int(next_issue.split('-')[1])-1)
 
         try:
@@ -171,9 +164,9 @@ def worker1(cookies,lotteryid):
             continue
 
         if(now_numbs == bet_list_flag):
-            print(time.asctime(time.localtime(time.time())),
-                '当前期号：', next_issue, '等待开奖中……', end='\r')
-            time.sleep(5)
+            print(time.asctime(time.localtime(time.time())),lotteryid,
+                '当前期号：', next_issue, '等待开奖中……')
+            time.sleep(10)
             continue
         else:
             for n, i in enumerate(bet_list_flag):
@@ -186,16 +179,20 @@ def worker1(cookies,lotteryid):
                 money_dict[str(n)] = set_moneys[::-1]
             bet_list.append([str(n), i, str(money_dict[str(n)].pop())])
         if(model=='1'):
-            d = Bet(22, next_issue, bet_list, cookies)
+            if(str(lotteryid)=='3'):
+                d = Bet(lotteryid, ''.join(next_issue.split('-')), bet_list, cookies)
+            else:
+                d = Bet(lotteryid, next_issue, bet_list, cookies)
         else:
             d='200'
 
             print(
     ''' 
     模拟投注成功
+    彩种：%s
     期号：%s
     投注内容：'''
-                % (next_issue)
+                % (lotteryid,next_issue)
             )
             for i in bet_list:
                 print('位置:'+str(i[0]),'内容:'+str(i[1]), str(i[2])+'元')
@@ -206,6 +203,22 @@ def worker1(cookies,lotteryid):
 
 
 if __name__ == "__main__":
+    '''
+        方案一：开什么投什么 
+    '''
+    print('钻石国际自动投注')
+    print('方案一：开什么投什么')
+    #lotteryid=input("输入彩种前的序号   22极速赛车        3幸运飞艇        31欢乐赛车：")
+    print('22极速赛车        3幸运飞艇        31欢乐赛车')
+    model=input('选择模式前的序号 1真实 2模拟：')
+    set_moneys = input("输入投注金额（用空格分隔开）：").split(' ')
     cookies=login()
-    worker1(cookies,lotteryid)
-    input()
+
+    p1=Process(target=worker1,args=(cookies,'22',model,set_moneys,))
+    p2=Process(target=worker1,args=(cookies,'3',model,set_moneys,))
+    p3=Process(target=worker1,args=(cookies,'31',model,set_moneys,))
+    p1.start()
+    p2.start()
+    p3.start()
+    
+    input('123')
