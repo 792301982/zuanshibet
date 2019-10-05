@@ -3,6 +3,7 @@ from import_functions_define import *
 def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,treeview2,balance_label,zongshuying_label):
     '''
     方案二主函数 。单参数有多个值的均为列表 relation为列表内字典["{'0-9':['01','02'],'4-9':['02','05']}"] 开始投注的数字
+                                                            ["0-9:1,5,9/1-8:1,7,9"]
     '''
     bet_list_flag = ''                 #用于检测是否开奖
     bet_list_dict=dict()               #各期投注信息用于treeview打印
@@ -10,7 +11,15 @@ def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,tr
     for i in range(10):
         bet_location_dict[str(i)]=dict()
 
-    relation=json.loads(relation[0].replace("'",'''"'''))      #处理字典
+    relation=relation[0]                     #处理字典
+    relation_l=relation.split('/')
+    relation=dict()
+    def Change2two(x):
+        return '%0*d' % (2,int(x))
+    for i in relation_l:
+        relation[i.split(':')[0]]=list(map(Change2two,i.split(':')[1].split(',')))
+
+    bet_loc_rela_dict=dict()
     while(1):
         try:
             next_issue = getCurInfoAndModel(lotteryid, cookies)[0]     #正在投注的这一期
@@ -65,28 +74,44 @@ def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,tr
             continue
         else:
             #方案投注策略从此开始-----------------------------------------------------------
+
             #验证是否中奖
-            for i in bet_location_dict:
-                if(now_numbs[int(i)] in bet_location_dict[i] and len(bet_location_dict[i][now_numbs[int(i)]])!=0):
-                    print(now_issue,i,now_numbs[int(i)],'中奖')
-                    bet_location_dict[i][now_numbs[int(i)]]=list()
-            
+            for i in bet_loc_rela_dict:
+                start_loc=i.split('-')[0]               #开始投注的位置
+                bet_loc=i.split('-')[1]                 #实际投注的位置      
+                if(len(bet_loc_rela_dict[i])!=0 and now_numbs[int(bet_loc)] in bet_location_dict[bet_loc]):
+                    print(now_issue,bet_loc,now_numbs[int(bet_loc)],'中奖')
+                    bet_loc_rela_dict[i]=list()
+              
+
             for n,i in enumerate(relation):
                 start_loc=i.split('-')[0]               #开始投注的位置
                 bet_loc=i.split('-')[1]                 #实际投注的位置
                 for u in relation[i]:
-                    if(u == now_numbs[int(start_loc)]):
-                        bet_location_dict[bet_loc][u]=set_moneys[::-1]               #设置金额。bet_location_dict[赛道][数字]=金额列表
+                    if(u == now_numbs[int(start_loc)] and i not in bet_loc_rela_dict):
+                        bet_loc_rela_dict[i]=set_moneys[::-1]
+                        #bet_location_dict[bet_loc][u]=set_moneys[::-1]               #设置金额。bet_location_dict[赛道][数字]=金额列表
+
+
 
             '''for n, i in enumerate(bet_list_flag):
                 if i == now_numbs[n]:
                     money_dict[str(n)] = set_moneys[::-1]'''
+
+        #更改投注数字
+        for i in bet_loc_rela_dict:
+            start_loc=i.split('-')[0]               #开始投注的位置
+            bet_loc=i.split('-')[1]                 #实际投注的位置
+            if(len(bet_loc_rela_dict[i])!=0):
+                bet_location_dict[bet_loc][now_numbs[int(start_loc)]]=[bet_loc_rela_dict[i].pop()]
+
 
         bet_list = list() #位置 投注内容 金额
         for i in bet_location_dict:
             if(len(bet_location_dict[i])!=0):
                 for u in bet_location_dict[i]:
                     if(len(bet_location_dict[i][u])!=0):
+                        #提取金额
                         bet_money=str(bet_location_dict[i][u].pop())
                         if(bet_money=='0'):
                             continue
@@ -185,7 +210,7 @@ def fangan2(cookies):
     text_jisu_moneys=Text(frame1,width=20,height=4)
     text_jisu_moneys.grid(row=9,column=col)
 
-    Label(frame1, text="极速赛车 车道关系和投注数字（格式：{'0-9':['01','02'],'4-9':['02','05']} ）").grid(row=10,column=col)
+    Label(frame1, text="极速赛车 车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）").grid(row=10,column=col)
     text_jisu_chedao=Text(frame1,width=50,height=8)
     text_jisu_chedao.grid(row=11,column=col)
 
@@ -228,7 +253,7 @@ def fangan2(cookies):
     text_feiting_moneys=Text(frame2,width=20,height=4)
     text_feiting_moneys.grid(row=9,column=col)
 
-    Label(frame2, text="feiting车道关系和投注数字（空格分隔）0代表第一名 1代表第二名…… 9代表第十名：").grid(row=10,column=col)
+    Label(frame2, text="feiting车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）：").grid(row=10,column=col)
     text_feiting_chedao=Text(frame2,width=10,height=2)
     text_feiting_chedao.grid(row=11,column=col)
 
@@ -270,7 +295,7 @@ def fangan2(cookies):
     text_feiche_moneys=Text(frame3,width=20,height=4)
     text_feiche_moneys.grid(row=9,column=col)
 
-    Label(frame3, text="feiche车道关系和投注数字（空格分隔）0代表第一名 1代表第二名…… 9代表第十名：").grid(row=10,column=col)
+    Label(frame3, text="feiche车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）：").grid(row=10,column=col)
     text_feiche_chedao=Text(frame3,width=10,height=2)
     text_feiche_chedao.grid(row=11,column=col)
 
