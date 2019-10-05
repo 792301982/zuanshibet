@@ -88,7 +88,7 @@ def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,tr
                 start_loc=i.split('-')[0]               #开始投注的位置
                 bet_loc=i.split('-')[1]                 #实际投注的位置
                 for u in relation[i]:
-                    if(u == now_numbs[int(start_loc)] and i not in bet_loc_rela_dict):
+                    if(u == now_numbs[int(start_loc)] and (i not in bet_loc_rela_dict or len(bet_loc_rela_dict[i])==0)):
                         bet_loc_rela_dict[i]=set_moneys[::-1]
                         #bet_location_dict[bet_loc][u]=set_moneys[::-1]               #设置金额。bet_location_dict[赛道][数字]=金额列表
 
@@ -103,6 +103,7 @@ def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,tr
             start_loc=i.split('-')[0]               #开始投注的位置
             bet_loc=i.split('-')[1]                 #实际投注的位置
             if(len(bet_loc_rela_dict[i])!=0):
+                bet_location_dict[bet_loc].clear()
                 bet_location_dict[bet_loc][now_numbs[int(start_loc)]]=[bet_loc_rela_dict[i].pop()]
 
 
@@ -113,6 +114,7 @@ def worker2(cookies,lotteryid,model,stop_to_bet,set_moneys,relation,treeview1,tr
                     if(len(bet_location_dict[i][u])!=0):
                         #提取金额
                         bet_money=str(bet_location_dict[i][u].pop())
+                        
                         if(bet_money=='0'):
                             continue
                         bet_list.append([str(i), u, bet_money])
