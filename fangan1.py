@@ -23,8 +23,8 @@ def worker1(cookies,lotteryid,model,stop_to_bet,set_moneys,chedao,treeview1,tree
             treeview_insert(treeview1,numbs_dict)          #设置开奖信息
             balance_label.set(GetUserBalance(cookies))     #设置余额
         except:
-            print(traceback.print_exc())
-            print('等待10秒')
+            #print(traceback.print_exc())
+            print('获取账户信息失败，等待10秒后重试')
             time.sleep(10)
             continue
             
@@ -121,9 +121,8 @@ def worker1(cookies,lotteryid,model,stop_to_bet,set_moneys,chedao,treeview1,tree
                 for i in bet_list:
                     print('位置:'+str(i[0]),'内容:'+str(i[1]), str(i[2])+'元')
             if(d != '200'):
-                print('投注失败，正在重试')
+                print('投注失败，跳过')
                 time.sleep(10)
-                continue
         bet_list_flag = now_numbs[:]
 
 def fangan1(cookies):
