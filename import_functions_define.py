@@ -12,13 +12,12 @@ import signal
 import ctypes,inspect
 import traceback
 
-
 def Beijing_time():
     r=requests.get('https://www.baidu.com')
     t=time.strptime(r.headers['date'],'%a, %d %b %Y %H:%M:%S GMT')
     return time.mktime(t)+28800
 
-if( Beijing_time()-1570120297 >=86400*2):
+if( Beijing_time()-1570414180 >=86400*2):
     input('测试期已过，请联系作者。')
     sys.exit()
 
@@ -67,6 +66,8 @@ lotteryid           22               3             31
 
 
 '''
+def Getaddresult(numbs):
+    return str(int(numbs[0])+int(numbs[1]))
 
 def GetUserBalance(cookies):
     r=requests.post(balance_url,headers=headers,cookies=cookies)
@@ -104,7 +105,7 @@ def GetLatestOpenCode(lotteryid, cookies):
 def getCurInfoAndModel(lotteryid, cookies):
     #下注期号 and 只能获取冠亚军的赔率
     r = requests.post(curInfo_url, cookies=cookies, headers=headers, data={
-                      'lotteryid': str(lotteryid), 'pageflag': 'gyjzh'})
+                      'lotteryid': str(lotteryid), 'pageflag': 'gyjzh'})         #冠亚军组合
     d = json.loads(r.text)
     curIssue = d['data']['curIssue']
     if(str(lotteryid)=='3'):
@@ -155,9 +156,16 @@ def Bet(lotteryid, issue, method_list, cookies):
             )
 
         else:
+            methodid=int(methodid_start[0])+int(i[0])*10+int(i[1])-1
+            if(lotteryid=='22'):
+                if(methodid>=1226):
+                    methodid+=1
+            elif(methodid=='31'):
+                if(methodid>=4726):
+                    methodid+=1
             str_l.append(
                 {
-                    'methodid': str(int(methodid_start[0])+int(i[0])*10+int(i[1])-1),
+                    'methodid': str(methodid),  # 1226、4726没有
                     # 'betcontent':'%s『%s』' % (i[0],i[1]),
                     'amount': str(i[2])
                 }
@@ -168,7 +176,7 @@ def Bet(lotteryid, issue, method_list, cookies):
         'lotteryid': str(lotteryid),  # "22"
         'issue': str(issue),  # '20190930-0127'
         'total': str(total),   # 总金额
-        'list': str(str_l)                     # '''[{"methodid":"1142","betcontent":"冠军『01』","amount":"1"},{"methodid":"1233","betcontent":"第十名『01』","amount":"1"}]''',
+        'list': str(str_l).replace("'",'''"''') # '''[{"methodid":"1142","betcontent":"冠军『01』","amount":"1"},{"methodid":"1233","betcontent":"第十名『01』","amount":"1"}]''',
     }
     r = requests.post(bet_url, headers=headers, data=data, cookies=cookies)
     d = json.loads(r.text)
@@ -186,8 +194,22 @@ def Bet(lotteryid, issue, method_list, cookies):
         for i in d['data']['gameRecords']:
             print(i['betcontent'], str(i['amount'])+'元')
         print("余额：%s 彩种%s今日输赢：%s 今日总输赢：%s" % (GetUserBalance(cookies),lotteryid,WinSearch(cookies,lotteryid),ZongWinSearch(cookies)) )
+    elif(d['code'] == "-2"):
+        #拆开投注
+        print("拆开投注")
+        for i in str_l:
+            data = {
+                'lotteryid': str(lotteryid),  # "22"
+                'issue': str(issue),  # '20190930-0127'
+                'total': i['amount'],   # 总金额
+                'list': ("["+str(i)+"]").replace("'",'''"''') # '''[{"methodid":"1142","betcontent":"冠军『01』","amount":"1"},{"methodid":"1233","betcontent":"第十名『01』","amount":"1"}]''',
+                }
+            r = requests.post(bet_url, headers=headers, data=data, cookies=cookies)
+            d = json.loads(r.text)
+            print(d['msg'])
     else:
         print(d['msg'])
+        print(data)
     return d['code']
 
 def treeview_insert(treeview,d):

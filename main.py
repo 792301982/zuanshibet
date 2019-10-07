@@ -1,5 +1,6 @@
 from fangan1 import *
 from fangan2 import *
+from fangan3 import *
 
 
 if __name__ == "__main__":
@@ -12,5 +13,7 @@ if __name__ == "__main__":
     #fangan2(cookies)
     p1=Process(target=fangan1,args=(cookies,))
     p2=Process(target=fangan2,args=(cookies,))
+    p3=Process(target=fangan3,args=(cookies,))
     p1.start()
     p2.start()
+    p3.start()
