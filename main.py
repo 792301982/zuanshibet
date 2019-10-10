@@ -7,7 +7,7 @@ if __name__ == "__main__":
     #一个方案一个进程
     multiprocessing.freeze_support()
     print('钻石国际自动投注')
-    print('22极速赛车        3幸运飞艇        31欢乐赛车')
+    print('22极速赛车        3幸运飞艇        8疯狂赛车')
     cookies=login()
     #cookies=''
     #fangan2(cookies)

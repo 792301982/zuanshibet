@@ -37,7 +37,10 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
             next_issue_and_peilv=getCurInfoAndModel(lotteryid, cookies)
             next_issue = next_issue_and_peilv[0]
             numbs_dict = Get_last30_number(lotteryid, cookies)
-            now_issue = '%0*d' % (4, int(next_issue.split('-')[1])-1)  #仅4位
+            if(lotteryid=='9'):
+                now_issue=str(int(next_issue[-4:])-1)
+            else:
+                now_issue = '%0*d' % (4, int(next_issue.split('-')[1])-1)  #仅4位
             treeview_del(treeview1)
             treeview_insert(treeview1,numbs_dict)          #设置开奖信息
             balance_label.set(GetUserBalance(cookies))     #设置余额
@@ -52,11 +55,18 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
         for i in bet_list_dict:
             for u in bet_list_dict[i]:       #i是期号 u[赔率 数字 金额]
                 try:
-                    if(u[1]==Getaddresult( numbs_dict[i.split('-')[1]].split(',')) ):
-                        zong+=int(u[2])*u[0]-int(u[2])
+                    if(lotteryid=='9'):
+                        if(u[1]==Getaddresult( numbs_dict[i[-4:]].split(','))):
+                            zong+=int(u[2])*float(peilv_dict[u[1]])-int(u[2])
+                        else:
+                            zong-=int(u[2])
                     else:
-                        zong-=int(u[2])
+                        if(u[1]==Getaddresult( numbs_dict[i.split('-')[1]].split(',')) ):
+                            zong+=int(u[2])*float(peilv_dict[u[1]])-int(u[2])
+                        else:
+                            zong-=int(u[2])
                 except:
+                    #print('计算输赢金额出错')
                     pass
 
         if(int(zong)>=int(stop_to_bet[0])):
@@ -77,16 +87,15 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
             now_numbs = numbs_dict[now_issue].split(',')
         except KeyError:
             print('彩种：%s' % lotteryid,'开奖结果尚未更新，正在重试……')
-            time.sleep(20)
+            time.sleep(10)
             continue
 
         if(now_numbs == bet_list_flag):
             print(time.asctime(time.localtime(time.time())),lotteryid,
                 '当前期号：', next_issue, '等待开奖中……')
-            time.sleep(20)
+            time.sleep(10)
             continue
         else:
-            last_numbs= numbs_dict['%0*d' % (4, int(now_issue)-1)] .split(',')
             now_add_numb=Getaddresult(now_numbs)
             #验证是否中奖
             win_peilv_flag=list()
@@ -98,7 +107,7 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
 
             for i in peilv_dict:
                 if(peilv_dict[i]==peilv_dict[now_add_numb] and peilv_dict[i] in peilv and peilv_dict[i] not in win_peilv_flag):
-                    bet_location_dict[peilv_dict[i]][i]=set_moneys[::-1]        #设置金额。bet_location_dict[赔率][数字]=金额列表
+                    bet_location_dict[peilv_dict[i]][i]=set_moneys[peilv.index(peilv_dict[i])].split(' ')[::-1]        #设置金额。bet_location_dict[赔率][数字]=金额列表
 
         bet_list = list() #位置 投注内容 金额
         for i in bet_location_dict:
@@ -108,9 +117,6 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
                 for u in bet_location_dict[i]:
                     if(len(bet_location_dict[i][u])!=0):
                         bet_money=str(bet_location_dict[i][u].pop())
-                        if(bet_money=='0'):
-                            print('投注金额为0 期号：%s 赔率：%s',next_issue,str(i))
-                            continue
                         bet_list.append(['冠亚军和', u, bet_money])
 
         bet_list_dict[next_issue]=bet_list
@@ -118,6 +124,7 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
         treeview_del(treeview2)
         treeview2_insert(treeview2,bet_list_dict)          #设置投注信息
 
+        d=0
         if(len(bet_list)!=0):
             if(model=='1'):
                 try:
@@ -126,6 +133,7 @@ def worker3(cookies,lotteryid,model,stop_to_bet,set_moneys,peilv,treeview1,treev
                     else:
                         d = Bet(lotteryid, next_issue, bet_list, cookies)
                 except:
+                    d='0'
                     print("投注异常")
             else:
                 d='200'
@@ -161,7 +169,7 @@ def fangan3(cookies):
     Label(fm1, textvariable=zongshuying_label).grid(row=2,column=2)
     fm1.grid(row=1,column=1)
 
-    def start_bet(cookies,lotteryid,model,stop_to_bet,set_moneys,chedao,treeview1,treeview2,balance_label,zongshuying_label):
+    def start_bet(frame1,cookies,lotteryid,model,stop_to_bet,set_moneys,chedao,treeview1,treeview2,balance_label,zongshuying_label):
         t=threading.Thread(target=worker3,args=(cookies,lotteryid,model,stop_to_bet,set_moneys,chedao,treeview1,treeview2,balance_label,zongshuying_label,))
         t.start()
         def pause_bet():
@@ -210,7 +218,7 @@ def fangan3(cookies):
     text_jisu_chedao=Text(frame1,width=10,height=2)
     text_jisu_chedao.grid(row=11,column=col)
 
-    Button(frame1,text="开始",command=lambda:start_bet(cookies,'22',text_jisu_model.get('1.0',END).strip(),text_jisu_stop2bet.get('1.0',END).strip().split(' '),text_jisu_moneys.get('1.0',END).strip().split(' '),text_jisu_chedao.get('1.0',END).strip().split(' '),treeview_jisu1,treeview_jisu2,balance_label,zongshuying_label)).grid(row=12,column=col)
+    Button(frame1,text="开始",command=lambda:start_bet(frame1,cookies,'22',text_jisu_model.get('1.0',END).strip(),text_jisu_stop2bet.get('1.0',END).strip().split(' '),text_jisu_moneys.get('1.0',END).strip().split('/'),text_jisu_chedao.get('1.0',END).strip().split(' '),treeview_jisu1,treeview_jisu2,balance_label,zongshuying_label)).grid(row=12,column=col)
 
 
     #3幸运飞艇
@@ -249,16 +257,16 @@ def fangan3(cookies):
     text_feiting_moneys=Text(frame2,width=20,height=4)
     text_feiting_moneys.grid(row=9,column=col)
 
-    Label(frame2, text="feiting车道（空格分隔）0代表第一名 1代表第二名…… 9代表第十名：").grid(row=10,column=col)
+    Label(frame2, text="feiting需要投注的赔率（空格分隔）：").grid(row=10,column=col)
     text_feiting_chedao=Text(frame2,width=10,height=2)
     text_feiting_chedao.grid(row=11,column=col)
 
-    Button(frame2,text="开始",command=lambda:start_bet(cookies,'3',text_feiting_model.get('1.0',END).strip(),text_feiting_stop2bet.get('1.0',END).strip().split(' '),text_feiting_moneys.get('1.0',END).strip().split(' '),text_feiting_chedao.get('1.0',END).strip().split(' '),treeview_xingyun1,treeview_xingyun2,balance_label,zongshuying_label)).grid(row=12,column=col)
+    Button(frame2,text="开始",command=lambda:start_bet(frame2,cookies,'3',text_feiting_model.get('1.0',END).strip(),text_feiting_stop2bet.get('1.0',END).strip().split(' '),text_feiting_moneys.get('1.0',END).strip().split('/'),text_feiting_chedao.get('1.0',END).strip().split(' '),treeview_xingyun1,treeview_xingyun2,balance_label,zongshuying_label)).grid(row=12,column=col)
 
-    #31欢乐赛车
+    #9疯狂赛车
     col=3
     frame3=Frame(notebook)
-    Label(frame3, text="31欢乐赛车开奖信息：").grid(row=1,column=col)
+    Label(frame3, text="9疯狂赛车开奖信息：").grid(row=1,column=col)
     columns=['期号','开奖号']
     treeview_huanle1 =ttk.Treeview(frame3, height=10, show="headings", columns=columns)  # 表格
     treeview_huanle1.column("期号", width=50, anchor='center') # 表示列,不显示
@@ -279,23 +287,23 @@ def fangan3(cookies):
     treeview_huanle2.heading("投注金额", text="投注金额")
     treeview_huanle2.grid(row=2,column=col+1)
 
-    Label(frame3, text="feiche止赢止损（空格分隔）：").grid(row=4,column=col)
-    text_feiche_stop2bet=Text(frame3,width=10,height=2)
-    text_feiche_stop2bet.grid(row=5,column=col)
+    Label(frame3, text="fengkuang止赢止损（空格分隔）：").grid(row=4,column=col)
+    text_fengkuang_stop2bet=Text(frame3,width=10,height=2)
+    text_fengkuang_stop2bet.grid(row=5,column=col)
 
-    Label(frame3, text="feiche模式（1真实 2模拟）：").grid(row=6,column=col)
-    text_feiche_model=Text(frame3,width=10,height=2)
-    text_feiche_model.grid(row=7,column=col)
+    Label(frame3, text="fengkuang模式（1真实 2模拟）：").grid(row=6,column=col)
+    text_fengkuang_model=Text(frame3,width=10,height=2)
+    text_fengkuang_model.grid(row=7,column=col)
 
-    Label(frame3, text="feiche金额（空格分隔）：").grid(row=8,column=col)
-    text_feiche_moneys=Text(frame3,width=20,height=4)
-    text_feiche_moneys.grid(row=9,column=col)
+    Label(frame3, text="fengkuang金额（空格分隔）：").grid(row=8,column=col)
+    text_fengkuang_moneys=Text(frame3,width=20,height=4)
+    text_fengkuang_moneys.grid(row=9,column=col)
 
-    Label(frame3, text="feiche车道（空格分隔）0代表第一名 1代表第二名…… 9代表第十名：").grid(row=10,column=col)
-    text_feiche_chedao=Text(frame3,width=10,height=2)
-    text_feiche_chedao.grid(row=11,column=col)
+    Label(frame3, text="fengkuang需要投注的赔率（空格分隔）：").grid(row=10,column=col)
+    text_fengkuang_chedao=Text(frame3,width=10,height=2)
+    text_fengkuang_chedao.grid(row=11,column=col)
 
-    Button(frame3,text="开始",command=lambda:start_bet(cookies,'31',text_feiche_model.get('1.0',END).strip(),text_feiche_stop2bet.get('1.0',END).strip().split(' '),text_feiche_moneys.get('1.0',END).strip().split(' '),text_feiche_chedao.get('1.0',END).strip().split(' '),treeview_huanle1,treeview_huanle2,balance_label,zongshuying_label)).grid(row=12,column=col)
+    Button(frame3,text="开始",command=lambda:start_bet(frame3,cookies,'9',text_fengkuang_model.get('1.0',END).strip(),text_fengkuang_stop2bet.get('1.0',END).strip().split(' '),text_fengkuang_moneys.get('1.0',END).strip().split('/'),text_fengkuang_chedao.get('1.0',END).strip().split(' '),treeview_huanle1,treeview_huanle2,balance_label,zongshuying_label)).grid(row=12,column=col)
 
     # t1=threading.Thread(target=worker1,args=(cookies,'22',model,stop_to_bet,set_moneys,chedao))
     # t2=threading.Thread(target=worker1,args=(cookies,'3',model,stop_to_bet,set_moneys,chedao))
@@ -306,7 +314,7 @@ def fangan3(cookies):
 
     notebook.add(frame1, text="22极速赛车")
     notebook.add(frame2, text="3幸运飞艇")
-    notebook.add(frame3, text="31欢乐赛车")
+    notebook.add(frame3, text="9疯狂赛车")
     notebook.grid(row=1,column=2)
     
     base.mainloop()
@@ -318,7 +326,7 @@ if __name__ == "__main__":
         方案三：组合投注
     '''
     print('钻石国际自动投注')
-    print('22极速赛车        3幸运飞艇        31欢乐赛车')
+    print('22极速赛车        3幸运飞艇        9疯狂赛车')
 
     cookies=login()
     #cookies=''

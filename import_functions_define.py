@@ -17,7 +17,7 @@ def Beijing_time():
     t=time.strptime(r.headers['date'],'%a, %d %b %Y %H:%M:%S GMT')
     return time.mktime(t)+28800
 
-if( Beijing_time()-1570414180 >=86400*2):
+if( Beijing_time()-1570414180 >=86400*4):
     input('测试期已过，请联系作者。')
     sys.exit()
 
@@ -53,16 +53,16 @@ headers = {
 }
 
 '''
-                    极速赛车        幸运飞艇        欢乐赛车
-lotteryid           22               3             31
+                    极速赛车        幸运飞艇        欢乐赛车        疯狂赛车
+lotteryid           22               3             31               9
 
-1~10名methodid      1142             103           4642
-                    |                |             |
-                    1242             202           4742       冠军『01』
+1~10名methodid      1142             103           4642             4245
+                    |                |             |                |
+                    1242             202           4742             4345        冠军『01』
 
-冠亚组合methodid     1243             204           4743
-                    |                |             |
-                    1259             224           4759       冠、亚军和『3』
+冠亚组合methodid     1243             204           4743             4346
+                    |                |             |                |
+                    1259             224           4759             4366        冠、亚军和『3』
 
 
 '''
@@ -70,17 +70,17 @@ def Getaddresult(numbs):
     return str(int(numbs[0])+int(numbs[1]))
 
 def GetUserBalance(cookies):
-    r=requests.post(balance_url,headers=headers,cookies=cookies)
+    r=requests.post(balance_url,headers=headers,cookies=cookies,timeout=10)
     d=json.loads(r.text)
     return d['data']
 
 def ZongWinSearch(cookies):
-    r=requests.post(zong_winsearch_url,headers=headers,cookies=cookies)
+    r=requests.post(zong_winsearch_url,headers=headers,cookies=cookies,timeout=10)
     d=json.loads(r.text)
     return d['data']
 
 def WinSearch(cookies,lotteryid):
-    r=requests.post(winsearch_url,headers=headers,cookies=cookies,data={'lotteryid': '22'})
+    r=requests.post(winsearch_url,headers=headers,cookies=cookies,data={'lotteryid': lotteryid},timeout=10)
     d=json.loads(r.text)
     return d['data']
     
@@ -88,11 +88,11 @@ def login():
     username=input("账号：")
     passward=input("密码：")
     if(username==''):
-        r = requests.post(login_test_url, headers=headers)
+        r = requests.post(login_test_url, headers=headers,timeout=10)
         cookies = r.cookies
         print('试玩模式')
     else:
-        r=requests.post(login_url,headers=headers,data={'loginname':username,'pwd':passward})
+        r=requests.post(login_url,headers=headers,data={'loginname':username,'pwd':passward},timeout=10)
         cookies=r.cookies
         d=json.loads(r.text)
         print(d['msg'])
@@ -105,7 +105,7 @@ def GetLatestOpenCode(lotteryid, cookies):
 def getCurInfoAndModel(lotteryid, cookies):
     #下注期号 and 只能获取冠亚军的赔率
     r = requests.post(curInfo_url, cookies=cookies, headers=headers, data={
-                      'lotteryid': str(lotteryid), 'pageflag': 'gyjzh'})         #冠亚军组合
+                      'lotteryid': str(lotteryid), 'pageflag': 'gyjzh'},timeout=10)         #冠亚军组合
     d = json.loads(r.text)
     curIssue = d['data']['curIssue']
     if(str(lotteryid)=='3'):
@@ -117,7 +117,7 @@ def getCurInfoAndModel(lotteryid, cookies):
 def Get_last30_number(lotteryid, cookies):
     # 近30期开奖号码
     r = requests.post(get_numb_url, headers=headers, cookies=cookies, data={
-                      'lotteryid': lotteryid, 'nums': 30})
+                      'lotteryid': lotteryid, 'nums': 30},timeout=10)
     d = json.loads(r.text)
     t = dict()
     for i in d['data'][::-1]:
@@ -143,9 +143,13 @@ def Bet(lotteryid, issue, method_list, cookies):
         methodid_start = [4642, 4743]
     elif str(lotteryid) == '3':
         methodid_start = [103, 204]
+    elif str(lotteryid)=='9':
+        methodid_start = [4245, 4346]
 
     total = 0
     for i in method_list:
+        if(i[2]=='0'):
+            continue
         if(i[0] == '冠亚军和'):
             str_l.append(
                 {
@@ -160,12 +164,15 @@ def Bet(lotteryid, issue, method_list, cookies):
             if(lotteryid=='22'):
                 if(methodid>=1226):
                     methodid+=1
-            elif(methodid=='31'):
+            elif(lotteryid=='31'):
                 if(methodid>=4726):
+                    methodid+=1
+            elif(lotteryid=='9'):
+                if(methodid>=4329):
                     methodid+=1
             str_l.append(
                 {
-                    'methodid': str(methodid),  # 1226、4726没有
+                    'methodid': str(methodid),  # 1226、4726、4329没有
                     # 'betcontent':'%s『%s』' % (i[0],i[1]),
                     'amount': str(i[2])
                 }
@@ -178,7 +185,7 @@ def Bet(lotteryid, issue, method_list, cookies):
         'total': str(total),   # 总金额
         'list': str(str_l).replace("'",'''"''') # '''[{"methodid":"1142","betcontent":"冠军『01』","amount":"1"},{"methodid":"1233","betcontent":"第十名『01』","amount":"1"}]''',
     }
-    r = requests.post(bet_url, headers=headers, data=data, cookies=cookies)
+    r = requests.post(bet_url, headers=headers, data=data, cookies=cookies,timeout=10)
     d = json.loads(r.text)
     if(d['code'] == "200"):
         print(
@@ -204,7 +211,7 @@ def Bet(lotteryid, issue, method_list, cookies):
                 'total': i['amount'],   # 总金额
                 'list': ("["+str(i)+"]").replace("'",'''"''') # '''[{"methodid":"1142","betcontent":"冠军『01』","amount":"1"},{"methodid":"1233","betcontent":"第十名『01』","amount":"1"}]''',
                 }
-            r = requests.post(bet_url, headers=headers, data=data, cookies=cookies)
+            r = requests.post(bet_url, headers=headers, data=data, cookies=cookies,timeout=10)
             d = json.loads(r.text)
             print(d['msg'])
     else:
