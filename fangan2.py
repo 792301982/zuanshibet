@@ -5,6 +5,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
     '''
     方案二主函数 。单参数有多个值的均为列表 relation为列表内字典["{'0-9':['01','02'],'4-9':['02','05']}"] 开始投注的数字
                                                             ["0-9:1,5,9/1-8:1,7,9"]
+                                                            （格式：1-0,1-2/2-1,2-3/1-3,1-4） 填满 01 到 10
     '''
     bet_list_flag = ''  # 用于检测是否开奖
     bet_list_dict = dict()  # 各期投注信息用于treeview打印
@@ -15,12 +16,18 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
     relation = relation[0]  # 处理字典
     relation_l = relation.split('/')
     relation = dict()
+    relation_m=list()
     
     def Change2two(x):
         return '%0*d' % (2, int(x))
     for i in relation_l:
-        relation[i.split(':')[0]] = list(
-            map(Change2two, i.split(':')[1].split(',')))
+        relation_m.append(i.split(','))
+        # relation[i.split(':')[0]] = list(
+        #     map(Change2two, i.split(':')[1].split(',')))
+    
+    for i in relation_m:
+        for u in i:
+            relation[u]=['01','02','03','04','05','06','07','08','09','10']
 
     bet_loc_rela_dict = dict()
     numbs_dict=dict()
@@ -90,7 +97,6 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
             continue
         else:
             # 方案投注策略从此开始-----------------------------------------------------------
-
             # 验证是否中奖
             for i in bet_loc_rela_dict:
                 start_loc = i.split('-')[0]  # 开始投注的位置
@@ -98,9 +104,13 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
                 if(len(bet_loc_rela_dict[i]) != 0 and now_numbs[int(bet_loc)] in bet_location_dict[bet_loc]):
                     print(now_issue, bet_loc, now_numbs[int(bet_loc)], '中奖')
                     bet_loc_rela_dict[i] = list()
-                    for u in bet_loc_rela_dict:
-                        if(u.split('-')[0] == i.split('-')[0]):
-                            bet_loc_rela_dict[u] = list()
+                    for m in relation_m:
+                        if(i in m):
+                            for u in m:
+                                bet_loc_rela_dict[u] = list()
+                    # for u in bet_loc_rela_dict:
+                    #     if(u.split('-')[0] == i.split('-')[0]):
+                    #         bet_loc_rela_dict[u] = list()
 
             for n, i in enumerate(relation):
                 start_loc = i.split('-')[0]  # 开始投注的位置
@@ -119,9 +129,11 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
             start_loc = i.split('-')[0]  # 开始投注的位置
             bet_loc = i.split('-')[1]  # 实际投注的位置
             if(len(bet_loc_rela_dict[i]) != 0):
-                bet_location_dict[bet_loc].clear()
-                bet_location_dict[bet_loc][now_numbs[int(start_loc)]] = [
-                    bet_loc_rela_dict[i].pop()]
+                #bet_location_dict[bet_loc].clear()
+                if(now_numbs[int(start_loc)] not in bet_location_dict[bet_loc]):
+                    bet_location_dict[bet_loc][now_numbs[int(start_loc)]] =list()
+                bet_location_dict[bet_loc][now_numbs[int(start_loc)]] .append(
+                    bet_loc_rela_dict[i].pop() )
 
         bet_list = list()  # 位置 投注内容 金额
         for i in bet_location_dict:
@@ -232,7 +244,7 @@ def fangan2(cookies):
     text_jisu_moneys = Text(frame1, width=20, height=4)
     text_jisu_moneys.grid(row=9, column=col)
 
-    Label(frame1, text="极速赛车 车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）").grid(row=10, column=col)
+    Label(frame1, text="极速赛车 车道关系和投注数字（格式：1-0,1-2/2-1,2-3/1-3,1-4）").grid(row=10, column=col)
     text_jisu_chedao = Text(frame1, width=50, height=8)
     text_jisu_chedao.grid(row=11, column=col)
 
@@ -277,7 +289,7 @@ def fangan2(cookies):
     text_feiting_moneys = Text(frame2, width=20, height=4)
     text_feiting_moneys.grid(row=9, column=col)
 
-    Label(frame2, text="feiting车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）：").grid(row=10, column=col)
+    Label(frame2, text="feiting车道关系和投注数字（格式：1-0,1-2/2-1,2-3/1-3,1-4）：").grid(row=10, column=col)
     text_feiting_chedao = Text(frame2, width=50, height=8)
     text_feiting_chedao.grid(row=11, column=col)
 
@@ -322,7 +334,7 @@ def fangan2(cookies):
     text_fengkuang_moneys = Text(frame3, width=20, height=4)
     text_fengkuang_moneys.grid(row=9, column=col)
 
-    Label(frame3, text="fengkuang车道关系和投注数字（格式：0-9:1,2,3,4,5,6,7,8,9/1-8:1,7,9）：").grid(row=10, column=col)
+    Label(frame3, text="fengkuang车道关系和投注数字（格式：1-0,1-2/2-1,2-3/1-3,1-4）：").grid(row=10, column=col)
     text_fengkuang_chedao = Text(frame3, width=50, height=8)
     text_fengkuang_chedao.grid(row=11, column=col)
 
