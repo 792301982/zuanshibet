@@ -20,13 +20,6 @@ def Beijing_time():
     t = time.strptime(r.headers['date'], '%a, %d %b %Y %H:%M:%S GMT')
     return time.mktime(t)+28800
 
-
-print(Beijing_time()-1570761443)
-if(Beijing_time()-1570954766 >= 86400*1):
-    input('测试期已过，请联系作者。')
-    sys.exit()
-
-
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""
     tid = ctypes.c_long(tid)
@@ -253,6 +246,8 @@ def treeview2_insert(treeview, d):
     for n, i in enumerate(d):  # 写入数据
         for u in d[i]:
             treeview.insert('', 0, values=(i, u[0], u[1], u[2]))
+        if(n >= 30):
+            break
 
 
 def treeview_del(treeview):

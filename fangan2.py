@@ -15,7 +15,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
     relation = relation[0]  # 处理字典
     relation_l = relation.split('/')
     relation = dict()
-
+    
     def Change2two(x):
         return '%0*d' % (2, int(x))
     for i in relation_l:
@@ -24,6 +24,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
 
     bet_loc_rela_dict = dict()
     numbs_dict=dict()
+
     while(1):
         try:
             next_issue = getCurInfoAndModel(lotteryid, cookies)[0]    # 正在投注的这一期
@@ -168,7 +169,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
 def fangan2(cookies):
     # 方案二 主线程
     base = tk.Tk()
-    base.title('方案二：位置互换 qq792301982')
+    base.title('方案二：位置互换')
     base.geometry('760x700')
 
     fm1 = Frame(base)

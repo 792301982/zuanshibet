@@ -33,6 +33,7 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
     for i in ['42.3', '21.3', '14.3', '10.2', '8.3']:
         bet_location_dict[str(i)] = dict()
     numbs_dict=dict()
+
     while(1):
         try:
             next_issue_and_peilv = getCurInfoAndModel(lotteryid, cookies)
@@ -112,7 +113,6 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
                 if(peilv_dict[i] == peilv_dict[now_add_numb] and peilv_dict[i] in peilv and peilv_dict[i] not in win_peilv_flag):
                     bet_location_dict[peilv_dict[i]][i] = set_moneys[peilv.index(
                         peilv_dict[i])].split(' ')[::-1]                      # 设置金额。bet_location_dict[赔率][数字]=金额列表
-
         bet_list = list()  # 位置 投注内容 金额
         for i in bet_location_dict:
             if(str(i) not in peilv):
@@ -163,7 +163,7 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
 def fangan3(cookies):
     # 方案三 主线程
     base = tk.Tk()
-    base.title('方案三：组合投注 qq792301982')
+    base.title('方案三：组合投注')
     base.geometry('760x700')
 
     fm1 = Frame(base)

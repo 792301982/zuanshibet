@@ -5,6 +5,7 @@ def worker1(cookies, lotteryid, model, stop_to_bet, set_moneys, chedao, treeview
     '''
     方案一主函数 。单参数有多个值的均为列表
     '''
+    
     bet_list_flag = ''
     money_dict = dict()
     for i in range(10):
@@ -15,6 +16,7 @@ def worker1(cookies, lotteryid, model, stop_to_bet, set_moneys, chedao, treeview
     for i in range(10):
         bet_location_dict[str(i)] = dict()
     numbs_dict=dict()
+
     while(1):
         try:
             next_issue = getCurInfoAndModel(lotteryid, cookies)[0]
@@ -147,7 +149,7 @@ def worker1(cookies, lotteryid, model, stop_to_bet, set_moneys, chedao, treeview
 def fangan1(cookies):
     # 方案一 主线程
     base = tk.Tk()
-    base.title('方案一：开什么投什么 qq792301982')
+    base.title('方案一：开什么投什么')
     base.geometry('760x700')
 
     fm1 = Frame(base)
