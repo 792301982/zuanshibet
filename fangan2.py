@@ -101,16 +101,22 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
             for i in bet_loc_rela_dict:
                 start_loc = i.split('-')[0]  # 开始投注的位置
                 bet_loc = i.split('-')[1]  # 实际投注的位置
-                if(len(bet_loc_rela_dict[i]) != 0 and now_numbs[int(bet_loc)] in bet_location_dict[bet_loc]):
-                    print(now_issue, bet_loc, now_numbs[int(bet_loc)], '中奖')
-                    bet_loc_rela_dict[i] = list()
-                    for m in relation_m:
-                        if(i in m):
-                            for u in m:
-                                bet_loc_rela_dict[u] = list()
-                    # for u in bet_loc_rela_dict:
-                    #     if(u.split('-')[0] == i.split('-')[0]):
-                    #         bet_loc_rela_dict[u] = list()
+                if(len(bet_loc_rela_dict[i]) != 0):
+                    for p in bet_list:
+                        if(bet_loc == p[0] ):
+                            if(now_numbs[int(bet_loc)] == p[1]):
+                                print(now_issue, start_loc+'-'+bet_loc, now_numbs[int(bet_loc)], '中奖')
+                                bet_loc_rela_dict[i] = list()
+                                for m in relation_m:
+                                    if(i in m):
+                                        for u in m:
+                                            bet_loc_rela_dict[u] = list()
+                                # for u in bet_loc_rela_dict:
+                                #     if(u.split('-')[0] == i.split('-')[0]):
+                                #         bet_loc_rela_dict[u] = list()
+
+            for i in range(10):
+                bet_location_dict[str(i)] = dict()                     #清空
 
             for n, i in enumerate(relation):
                 start_loc = i.split('-')[0]  # 开始投注的位置
