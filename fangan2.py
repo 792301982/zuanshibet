@@ -31,6 +31,10 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
 
     bet_loc_rela_dict = dict()
     numbs_dict=dict()
+    bet_relation_numbs=dict()         #各关系上一期投注的数字
+    for i in relation_m:
+        for u in i:
+            bet_relation_numbs[u]=list()
 
     while(1):
         try:
@@ -103,7 +107,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
                 bet_loc = i.split('-')[1]  # 实际投注的位置
                 if(len(bet_loc_rela_dict[i]) != 0):
                     for p in bet_list:
-                        if(bet_loc == p[0] ):
+                        if(bet_loc == p[0] and bet_relation_numbs[i] == p[1] ):
                             if(now_numbs[int(bet_loc)] == p[1]):
                                 print(now_issue, start_loc+'-'+bet_loc, now_numbs[int(bet_loc)], '中奖')
                                 bet_loc_rela_dict[i] = list()
@@ -114,6 +118,10 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
                                 # for u in bet_loc_rela_dict:
                                 #     if(u.split('-')[0] == i.split('-')[0]):
                                 #         bet_loc_rela_dict[u] = list()
+            
+            for i in relation_m:
+                for u in i:
+                    bet_relation_numbs[u]=list()
 
             for i in range(10):
                 bet_location_dict[str(i)] = dict()                     #清空
@@ -140,6 +148,7 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
                     bet_location_dict[bet_loc][now_numbs[int(start_loc)]] =list()
                 bet_location_dict[bet_loc][now_numbs[int(start_loc)]] .append(
                     bet_loc_rela_dict[i].pop() )
+                bet_relation_numbs[i]=now_numbs[int(start_loc)]
 
         bet_list = list()  # 位置 投注内容 金额
         for i in bet_location_dict:

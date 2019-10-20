@@ -20,6 +20,7 @@ def Beijing_time():
     t = time.strptime(r.headers['date'], '%a, %d %b %Y %H:%M:%S GMT')
     return time.mktime(t)+28800
 
+
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""
     tid = ctypes.c_long(tid)
@@ -162,16 +163,22 @@ def Bet(lotteryid, issue, method_list, cookies):
 
     total = 0
     for i in method_list:
-        if(i[2] == '0'):
+        if(str(i[2]) == '0'):
             continue
         if(i[0] == '冠亚军和'):
-            str_l.append(
-                {
-                    'methodid': str(int(methodid_start[1])+int(i[1])-3),
-                    # 'betcontent':'冠、亚军和『%s』' % i[1],
-                    'amount': str(i[2])
-                }
-            )
+            bet_dict = {
+                'methodid': str(int(methodid_start[1])+int(i[1])-3),
+                # 'betcontent':'冠、亚军和『%s』' % i[1],
+                'amount': str(i[2])
+            }
+            flag = 0
+            for u in str_l:
+                if u['methodid'] == bet_dict['methodid']:
+                    u['amount'] = str(int(u['amount'])+int(bet_dict['amount']))
+                    flag = 1
+                    break
+            if(flag == 0):
+                str_l.append(bet_dict)
 
         else:
             methodid = int(methodid_start[0])+int(i[0])*10+int(i[1])-1
@@ -184,13 +191,20 @@ def Bet(lotteryid, issue, method_list, cookies):
             elif(lotteryid == '9'):
                 if(methodid >= 4329):
                     methodid += 1
-            str_l.append(
-                {
-                    'methodid': str(methodid),  # 1226、4726、4329没有
-                    # 'betcontent':'%s『%s』' % (i[0],i[1]),
-                    'amount': str(i[2])
-                }
-            )
+
+            bet_dict = {
+                'methodid': str(methodid),  # 1226、4726、4329没有
+                # 'betcontent':'%s『%s』' % (i[0],i[1]),
+                'amount': str(i[2])
+            }
+            flag = 0
+            for u in str_l:
+                if u['methodid'] == bet_dict['methodid']:
+                    u['amount'] = str(int(u['amount'])+int(bet_dict['amount']))
+                    flag = 1
+                    break
+            if(flag == 0):
+                str_l.append(bet_dict)
         total += int(i[2])
 
     data = {
@@ -243,10 +257,12 @@ def treeview_insert(treeview, d):
 
 
 def treeview2_insert(treeview, d):
+    f = 0
     for n, i in enumerate(d):  # 写入数据
         for u in d[i]:
             treeview.insert('', 0, values=(i, u[0], u[1], u[2]))
-        if(n >= 30):
+            f += 1
+        if(f >= 50):
             break
 
 
