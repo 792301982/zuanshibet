@@ -1,11 +1,13 @@
 from import_functions_define import *
 
+moniyue=''
 
 def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1, treeview2, balance_label, zongshuying_label):
     '''
     方案三主函数 。单参数有多个值的均为列表
     '''
-
+    global moniyue
+    moni_yue=moniyue
     peilv_dict = {
         '3': '42.3',
         '4': '42.3',
@@ -40,13 +42,16 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
             next_issue = next_issue_and_peilv[0]
             numbs_dict.update(Get_last30_number(lotteryid, cookies))
             if(lotteryid == '9'):
-                now_issue = str(int(next_issue[-4:])-1)
+                now_issue = '%0*d' % (4, int(next_issue[-4:])-1)
             else:
                 # 仅4位
                 now_issue = '%0*d' % (4, int(next_issue.split('-')[1])-1)
             treeview_del(treeview1)
             treeview_insert(treeview1, numbs_dict)  # 设置开奖信息
-            balance_label.set(GetUserBalance(cookies))  # 设置余额
+            if(model==1):
+                balance_label.set(GetUserBalance(cookies))  # 设置余额
+            else:
+                balance_label.set(moni_yue)
         except:
             # print(traceback.print_exc())
             print('获取账户信息失败，等待10秒后重试')
@@ -76,6 +81,10 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
             input("止赢，等待中……")
         elif(int(zong) <= -int(stop_to_bet[1])):
             input("止损，等待中……")
+
+        moni_yue=str(int(moniyue)+int(zong))
+        if(int(moni_yue) <= 0):
+            input("余额空，等待中……") 
 
         if(model == '1'):
             try:
@@ -160,8 +169,10 @@ def worker3(cookies, lotteryid, model, stop_to_bet, set_moneys, peilv, treeview1
         bet_list_flag = now_numbs[:]
 
 
-def fangan3(cookies):
+def fangan3(cookies,moni_yue):
     # 方案三 主线程
+    global moniyue
+    moniyue=moni_yue
     base = tk.Tk()
     base.title('方案三：组合投注')
     base.geometry('760x700')

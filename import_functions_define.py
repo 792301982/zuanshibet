@@ -15,6 +15,7 @@ import inspect
 import traceback
 
 
+
 def Beijing_time():
     r = requests.get('https://www.baidu.com')
     t = time.strptime(r.headers['date'], '%a, %d %b %Y %H:%M:%S GMT')

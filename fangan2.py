@@ -1,5 +1,6 @@
 from import_functions_define import *
 
+moniyue=''
 
 def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treeview1, treeview2, balance_label, zongshuying_label):
     '''
@@ -7,6 +8,8 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
                                                             ["0-9:1,5,9/1-8:1,7,9"]
                                                             （格式：1-0,1-2/2-1,2-3/1-3,1-4） 填满 01 到 10
     '''
+    global moniyue
+    moni_yue=moniyue
     bet_list_flag = ''  # 用于检测是否开奖
     bet_list_dict = dict()  # 各期投注信息用于treeview打印
     bet_location_dict = dict()  # 每个位置 正在下注的数字 的金额
@@ -41,13 +44,16 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
             next_issue = getCurInfoAndModel(lotteryid, cookies)[0]    # 正在投注的这一期
             numbs_dict.update(Get_last30_number(lotteryid, cookies))  # 开奖信息列表
             if(lotteryid == '9'):
-                now_issue = str(int(next_issue[-4:])-1)
+                now_issue = '%0*d' % (4, int(next_issue[-4:])-1)
             else:
                 # 开奖的最新一期（仅4位）
                 now_issue = '%0*d' % (4, int(next_issue.split('-')[1])-1)
             treeview_del(treeview1)
             treeview_insert(treeview1, numbs_dict)  # 设置开奖信息
-            balance_label.set(GetUserBalance(cookies))  # 设置余额
+            if(model==1):
+                balance_label.set(GetUserBalance(cookies))  # 设置余额
+            else:
+                balance_label.set(moni_yue)
         except:
             # print(traceback.print_exc())
             print('获取账户信息失败，等待10秒后重试')
@@ -77,6 +83,10 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
             input("止赢，等待中……")
         elif(int(zong) <= -int(stop_to_bet[1])):
             input("止损，等待中……")
+
+        moni_yue=str(int(moniyue)+int(zong))
+        if(int(moni_yue) <= 0):
+            input("余额空，等待中……") 
 
         if(model == '1'):
             try:
@@ -193,12 +203,13 @@ def worker2(cookies, lotteryid, model, stop_to_bet, set_moneys, relation, treevi
         bet_list_flag = now_numbs[:]
 
 
-def fangan2(cookies):
+def fangan2(cookies,moni_yue):
     # 方案二 主线程
+    global moniyue
+    moniyue=moni_yue
     base = tk.Tk()
     base.title('方案二：位置互换')
     base.geometry('760x700')
-
     fm1 = Frame(base)
     balance_label = StringVar()
     balance_label.set('0')
